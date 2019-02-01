@@ -5,15 +5,9 @@ Aircraft::Aircraft(float x, float y, color_t color) {
     this->position = glm::vec3(x, y, 0);
     this->rotation = 0;
     speed = 1;
-    // Our vertices. Three consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
-    // A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
-    
     int n=50;
-
     float r=0.3,r1=0.0,r2=0.5;
-GLfloat g_vertex_buffer_data0[9*n+9] ;
-    
-   
+    GLfloat g_vertex_buffer_data0[9*n+9] ;
     for (int i = 0; i < n; ++i)
     {
         float angle = 2*M_PI*i/n;
@@ -151,6 +145,44 @@ GLfloat g_vertex_buffer_data0[9*n+9] ;
     } 
 
     this->object4 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data3, color, GL_FILL);
+
+
+     static const GLfloat vertex_buffer_data[] = {
+            0.0f,0.3f,0.25f,
+            0.0f,0.3f,1.0f,
+            2.0f,0.2f,0.25f,
+
+            2.0f,0.2f,0.25f,
+            0.0f,0.1f,0.25f,
+            0.0f,0.1f,1.0f,
+
+            0.0f,0.3f,0.25f,
+            0.0f,0.1f,0.25f,
+            2.0f,0.2f,0.25f,
+
+            0.0f,0.3f,1.0f,
+            0.0f,0.1f,1.0f,
+            2.0f,0.2f,0.25f,
+
+            0.0f,0.3f,0.25f,
+            0.0f,0.3f,1.0f,
+            -2.0f,0.2f,0.25f,
+
+            -2.0f,0.2f,0.25f,
+            0.0f,0.1f,0.25f,
+            0.0f,0.1f,1.0f, 
+
+            0.0f,0.3f,0.25f,
+            0.0f,0.1f,0.25f,
+            -2.0f,0.2f,0.25f,
+
+            0.0f,0.3f,1.0f,
+            0.0f,0.1f,1.0f,
+            -2.0f,0.2f,0.25f,           
+
+     };
+    this->object5 = create3DObject(GL_TRIANGLES, 8*3, vertex_buffer_data, color, GL_FILL);
+
    
 }
 
@@ -169,6 +201,7 @@ void Aircraft::draw(glm::mat4 VP) {
     draw3DObject(this->object4);
     draw3DObject(this->object0);
     draw3DObject(this->object01);
+    draw3DObject(this->object5);
 }
 
 void Aircraft::set_position(float x, float y) {
