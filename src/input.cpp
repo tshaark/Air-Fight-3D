@@ -53,9 +53,9 @@ void keyboard(GLFWwindow *window, int key, int scancode, int action, int mods) {
 /* Executed for character input (like in text boxes) */
 void keyboardChar(GLFWwindow *window, unsigned int key) {
     switch (key) {
-    case 'Q':
-    case 'q':
-        quit(window);
+    // case 'Q':
+    // case 'q':
+        // quit(window);
         break;
     default:
         break;

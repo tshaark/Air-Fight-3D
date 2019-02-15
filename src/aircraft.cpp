@@ -1,10 +1,14 @@
 #include "aircraft.h"
 #include "main.h"
 
-Aircraft::Aircraft(float x, float y, color_t color) {
-    this->position = glm::vec3(x, y, 0);
-    this->rotation = 0;
-    speed = 1;
+Aircraft::Aircraft(float x, float y, float z,color_t color,color_t color1) {
+    this->position = glm::vec3(x, y, z);
+
+    this->rotation.x = 0;
+    this->rotation.y = 0;
+    this->rotation.z = 0;
+
+
     int n=50;
     float r=0.3,r1=0.0,r2=0.5;
     GLfloat g_vertex_buffer_data0[9*n+9] ;
@@ -27,7 +31,7 @@ Aircraft::Aircraft(float x, float y, color_t color) {
         g_vertex_buffer_data0[9*i+7]=r2*y2;
         g_vertex_buffer_data0[9*i+8]=-0.5;
     } 
-    this->object0 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data0, color, GL_FILL);
+    this->object0 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data0, color1, GL_FILL);
     GLfloat g_vertex_buffer_data01[9*n+9] ;
     
    
@@ -50,7 +54,7 @@ Aircraft::Aircraft(float x, float y, color_t color) {
         g_vertex_buffer_data01[9*i+7]=r*y2;
         g_vertex_buffer_data01[9*i+8]=0.0f;
     } 
-    this->object01 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data01, color, GL_FILL);
+    this->object01 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data01, color1, GL_FILL);
 
 
 
@@ -181,7 +185,7 @@ Aircraft::Aircraft(float x, float y, color_t color) {
             -2.0f,0.1f,0.25f,           
 
      };
-    this->object5 = create3DObject(GL_TRIANGLES, 8*3, vertex_buffer_data, color, GL_FILL);
+    this->object5 = create3DObject(GL_TRIANGLES, 8*3, vertex_buffer_data, color1, GL_FILL);
 
    
 }
@@ -189,10 +193,12 @@ Aircraft::Aircraft(float x, float y, color_t color) {
 void Aircraft::draw(glm::mat4 VP) {
     Matrices.model = glm::mat4(1.0f);
     glm::mat4 translate = glm::translate (this->position);    // glTranslatef
-    glm::mat4 rotate    = glm::rotate((float) (this->rotation * M_PI / 180.0f), glm::vec3(1, 1, 1));
+    glm::mat4 xrot    = glm::rotate((float) (this->rotation.x * M_PI / 180.0f), glm::vec3(1, 0, 0));
+    glm::mat4 yrot    = glm::rotate((float) (this->rotation.y * M_PI / 180.0f), glm::vec3(0, 1, 0));
+    glm::mat4 zrot    = glm::rotate((float) (this->rotation.z * M_PI / 180.0f), glm::vec3(0, 0, 1));
     // No need as coords centered at 0, 0, 0 of cube arouund which we waant to rotate
     // rotate          = rotate * glm::translate(glm::vec3(0, -0.6, 0));
-    Matrices.model *= (translate * rotate);
+    Matrices.model *= (translate*xrot*yrot*zrot);
     glm::mat4 MVP = VP * Matrices.model;
     glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
     draw3DObject(this->object1);
@@ -204,13 +210,11 @@ void Aircraft::draw(glm::mat4 VP) {
     draw3DObject(this->object5);
 }
 
-void Aircraft::set_position(float x, float y) {
-    this->position = glm::vec3(x, y, 0);
+void Aircraft::set_position(float x, float y, float z) {
+    // this->position = glm::vec3(x, y, -4);
 }
 
 void Aircraft::tick() {
-    this->rotation += speed;
-    // this->position.x -= speed;
-    // this->position.y -= speed;
+    
 }
 

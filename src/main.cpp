@@ -1,6 +1,7 @@
 #include "main.h"
 #include "timer.h"
 #include "aircraft.h"
+#include "ocean.h"
 
 using namespace std;
 
@@ -13,10 +14,11 @@ GLFWwindow *window;
 **************************/
 
 Aircraft plane;
+Ocean sea;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
-int flag=0;
+int camFlag=0,xA,xB,xC,tA,tB,tC;
 
 Timer t60(1.0 / 60);
 
@@ -31,22 +33,45 @@ void draw() {
     glUseProgram (programID);
 
     // Eye - Location of camera. Don't change unless you are sure!!
+   //  if(camFlag==0)
+   // {
+     
+   // }
+   // if(camFlag==1)
+   // {
+   //      xA=plane.position.x-5*sin(plane.rotation.y*M_PI/180.0);
+   //      xB=plane.position.y+50;
+   //      xC=plane.position.z-5*cos(plane.rotation.y*M_PI/180.0);
+   //      tA=xA;
+   //      tB=plane.position.y;
+   //      tC=xC;
+   // }
     
+     // glm::vec3 eye ( 0,2,-2)
+    glm::vec3 eye = plane.position ;
+    // glm::vec3 eye (xA,xB,xC);
+    if(camFlag==0)
+        eye = plane.position - glm::vec3(10*sin(plane.rotation.z*M_PI/180.0),-4,10*cos(plane.rotation.z*M_PI/180.0));
+    else if(camFlag==1)
+        eye = plane.position -glm::vec3(0,-10,0);
+    else if(camFlag==2)
+        eye = plane.position -glm::vec3(0,0,0);
 
-     glm::vec3 eye ( 0,0,10);
+    glm::vec3 target = plane.position;
 
-
-     // glm::vec3 eye1 ( 10,10,10 );        
-    // Target - Where is the camera looking at.  Don't change unless you are sure!!
-    glm::vec3 target (0, 0, 0);
+   
     // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
-    glm::vec3 up (0, 1, 0);
+    glm::vec3 up (0, 0, 1);
 
     // Compute Camera matrix (view)
-    // if(!flag)
-    Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
+    // if(camFlag ==0)
+        Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
 
+    // if(camFlag ==1)
+    //     Matrices.view = glm::lookAt( eyeBehind, target, up );
 
+    // if(camFlag ==2)
+    //     Matrices.view = glm::lookAt( eyeFPS, target, up );
     // if(flag)
     // Matrices.view = glm::lookAt( eye1, target, up );
     // Don't change unless you are sure!!
@@ -63,22 +88,76 @@ void draw() {
 
     // Scene render
     plane.draw(VP);
+    sea.draw(VP);
 }
 
 void tick_input(GLFWwindow *window) {
     int left  = glfwGetKey(window, GLFW_KEY_LEFT);
     int right = glfwGetKey(window, GLFW_KEY_RIGHT);
-    /*if (left) {
-        flag=0;
+    int up = glfwGetKey(window, GLFW_KEY_SPACE);
+    int forward = glfwGetKey(window, GLFW_KEY_W);
+    int yawLeft = glfwGetKey(window, GLFW_KEY_A);
+    int yawRight = glfwGetKey(window, GLFW_KEY_D);
+    int rotLeft = glfwGetKey(window, GLFW_KEY_Q);
+    int rotRight = glfwGetKey(window, GLFW_KEY_E);
+    int view = glfwGetKey(window, GLFW_KEY_V);
+    int view1 = glfwGetKey(window, GLFW_KEY_B);
+    int view2 = glfwGetKey(window, GLFW_KEY_N);
+
+
+    if (up){
+        plane.position.y+=0.2f;
     }
-    if (right) {
-        flag=1;
-    }*/
+    if (forward){
+        plane.position.x += 0.2*sin(plane.rotation.y*M_PI/180.0);
+        plane.position.z += 0.2*cos(plane.rotation.y*M_PI/180.0);
+    }
+    if (yawLeft){
+
+        plane.rotation.y += 0.5;
+    }
+    if (yawRight){
+        plane.rotation.y -= 0.5;
+
+    }
+    if (rotLeft){
+        plane.rotation.z -= 0.5;
+
+    }
+    if (rotRight){
+        plane.rotation.z += 0.5;
+    }
+    if (view){
+        camFlag=1;
+    }
+    if (view1){
+        camFlag=2;
+    }
+    if (view2){
+        camFlag=0;
+    }
 }
 
 void tick_elements() {
     plane.tick();
-    camera_rotation_angle += 1;
+   // if(camFlag==0)
+   // {
+   //      xA=plane.position.x;
+   //      xB=plane.position.y+5;
+   //      xC=plane.position.z-10;
+   //      tA=plane.position.x;
+   //      tB=plane.position.y;
+   //      tC=plane.position.z;
+   // }
+   // if(camFlag==1)
+   // {
+   //      xA=plane.position.x-5*sin(plane.rotation.y*M_PI/180.0);
+   //      xB=plane.position.y+50;
+   //      xC=plane.position.z-5*cos(plane.rotation.y*M_PI/180.0);
+   //      tA=xA;
+   //      tB=plane.position.y;
+   //      tC=xC;
+   // }
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -87,7 +166,8 @@ void initGL(GLFWwindow *window, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
 
-    plane       = Aircraft(0, 0, COLOR_RED);
+    plane       = Aircraft(0, 30, 0, COLOR_GRAY, COLOR_BLACK);
+    sea       = Ocean(0,0,0,COLOR_BLUE);
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
@@ -115,6 +195,7 @@ int main(int argc, char **argv) {
     srand(time(0));
     int width  = 600;
     int height = 600;
+  
 
     window = initGLFW(width, height);
 
@@ -127,11 +208,12 @@ int main(int argc, char **argv) {
         if (t60.processTick()) {
             // 60 fps
             // OpenGL Draw commands
+            
+            tick_elements();
             draw();
             // Swap Frame Buffer in double buffering
             glfwSwapBuffers(window);
 
-            tick_elements();
             tick_input(window);
         }
 
@@ -152,5 +234,5 @@ void reset_screen() {
     float bottom = screen_center_y - 4 / screen_zoom;
     float left   = screen_center_x - 4 / screen_zoom;
     float right  = screen_center_x + 4 / screen_zoom;
-    Matrices.projection = glm::ortho(left, right, bottom, top, 0.1f, 500.0f);
+    Matrices.projection = glm::perspective(45.0f,1.0f,0.1f,1000.0f);
 }
