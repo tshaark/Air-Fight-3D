@@ -6,15 +6,16 @@ Ocean::Ocean(float x, float y, float z,color_t color) {
 
 
      static const GLfloat vertex_buffer_data[] = {
-        1000.0f,0.0f,-1000.0f,
-        -1000.0f,0.0f,-1000.0f,
-        -1000.0f,0.0f,1000.0f,
+        2000.0f,0.0f,-2000.0f,
+        -2000.0f,0.0f,-2000.0f,
+        -2000.0f,0.0f,2000.0f,
 
-        -1000.0f,0.0f,1000.0f,
-        1000.0f,0.0f,1000.0f,
-        1000.0f,0.0f,-1000.0f,
+        -2000.0f,0.0f,2000.0f,
+        2000.0f,0.0f,2000.0f,
+        2000.0f,0.0f,-2000.0f,
      };
     this->object = create3DObject(GL_TRIANGLES, 2*3, vertex_buffer_data, color, GL_FILL);
+    
 
    
 }

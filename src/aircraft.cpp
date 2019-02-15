@@ -3,7 +3,7 @@
 
 Aircraft::Aircraft(float x, float y, float z,color_t color,color_t color1) {
     this->position = glm::vec3(x, y, z);
-
+    this->rot= glm::mat4(1.0f);
     this->rotation.x = 0;
     this->rotation.y = 0;
     this->rotation.z = 0;
@@ -198,7 +198,8 @@ void Aircraft::draw(glm::mat4 VP) {
     glm::mat4 zrot    = glm::rotate((float) (this->rotation.z * M_PI / 180.0f), glm::vec3(0, 0, 1));
     // No need as coords centered at 0, 0, 0 of cube arouund which we waant to rotate
     // rotate          = rotate * glm::translate(glm::vec3(0, -0.6, 0));
-    Matrices.model *= (translate*xrot*yrot*zrot);
+    this->rot *= (yrot*xrot*zrot);
+    Matrices.model *= (translate*this->rot);
     glm::mat4 MVP = VP * Matrices.model;
     glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
     draw3DObject(this->object1);
@@ -208,6 +209,9 @@ void Aircraft::draw(glm::mat4 VP) {
     draw3DObject(this->object0);
     draw3DObject(this->object01);
     draw3DObject(this->object5);
+    this->rotation.x=0;
+    this->rotation.y=0;
+    this->rotation.z=0;
 }
 
 void Aircraft::set_position(float x, float y, float z) {
