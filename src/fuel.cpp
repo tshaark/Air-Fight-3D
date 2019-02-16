@@ -62,7 +62,7 @@ Fuel::Fuel(float x, float y, float z,color_t color,color_t color1) {
    
 }
 
-void Fuel::draw(glm::mat4 VP) {
+void Fuel::draw(glm::mat4 VP, float gas) {
     Matrices.model = glm::mat4(1.0f);
     glm::mat4 translate = glm::translate (this->position);    // glTranslatef
     // No need as coords centered at 0, 0, 0 of cube arouund which we waant to rotate
@@ -71,7 +71,15 @@ void Fuel::draw(glm::mat4 VP) {
     glm::mat4 MVP = VP * Matrices.model;
     glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
     draw3DObject(this->object1);
+    
+    glm::mat4 scale(1.0f);
+    scale[0][0]=gas;
+    // translate[0][3] += (gas)/2;
+    Matrices.model = (translate*scale);
+    MVP = VP * Matrices.model;
+    glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
     draw3DObject(this->object2);
+    // std::cout<<gas<<std::endl;
 }
 
 void Fuel::set_position(float x, float y, float z) {

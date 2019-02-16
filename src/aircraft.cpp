@@ -127,7 +127,7 @@ Aircraft::Aircraft(float x, float y, float z,color_t color,color_t color1) {
         g_vertex_buffer_data2[9*i+8]=2;
     } 
 
-    this->object3 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data2, color1, GL_FILL);
+    this->object3 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data2, color, GL_FILL);
     GLfloat g_vertex_buffer_data3[9*n+9] ;
     for (int i = 0; i < n; ++i)
     {
@@ -148,7 +148,7 @@ Aircraft::Aircraft(float x, float y, float z,color_t color,color_t color1) {
         g_vertex_buffer_data3[9*i+8]=2.5;
     } 
 
-    this->object4 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data3, color1, GL_FILL);
+    this->object4 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data3, color, GL_FILL);
 
 
      static const GLfloat vertex_buffer_data[] = {

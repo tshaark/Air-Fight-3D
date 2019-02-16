@@ -7,6 +7,8 @@
 #include "volcano.h"
 #include "radiotower.h"
 #include "fuel.h"
+#include "ring.h"
+
 
 using namespace std;
 
@@ -28,13 +30,15 @@ Score s[4];
 Volcano vol[25];
 Radiotower tow[25];
 Fuel gas;
+Ring ring[32];
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
 int camFlag=0,xA,xB,xC,tA,tB,tC;
 float aX,aY,aZ;
+float speedX,speedY,speedZ;
 int score;
-int fuel;
+float fuel=100.0;
 
 Timer t60(1.0 / 60);
 
@@ -59,21 +63,25 @@ void draw() {
     else if(camFlag==1)
         eye = plane.position +glm::vec3(0,10,0);
     else if(camFlag==2)
-        eye = plane.position -glm::vec3(0,0,0);
+        eye = plane.position -glm::vec3(0,0,-4);
 
     glm::vec3 target = plane.position;
+    glm::vec3 target1 = plane.position + glm::vec3(0,0,6);
+
     // cout<<eye.x<<" "<<eye.y<<" "<<eye.z<<endl;
 
    
     // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
-    glm::vec3 up(0,1,0);
-    if(camFlag == 0)
         glm::vec3 up(plane.rot[1][0], plane.rot[1][1], plane.rot[1][2]);
-    else
-        glm::vec3 up(0, 1, 0);
+        glm::vec3 up1(0, 0, 1);
+    if(camFlag == 0)
+        Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
+    if(camFlag == 1)
+        Matrices.view = glm::lookAt( eye, target, up1 ); // Rotating Camera for 3D
+    if(camFlag == 2)
+        Matrices.view = glm::lookAt( eye, target1, up ); // Rotating Camera for 3D
     // Compute Camera matrix (view)
     // if(camFlag ==0)
-        Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
     MatricesO.view = glm::lookAt(glm::vec3(0,0,10),glm::vec3(0,0,0),glm::vec3(0,1,0));
     // Don't change unless you are sure!!
     // Matrices.view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)); // Fixed camera for 2D (ortho) in XY plane
@@ -93,10 +101,14 @@ void draw() {
     // Scene render
     plane.draw(VP);
     sea.draw(VP);
-    gas.draw(VPO);
+    gas.draw(VPO,fuel/100.0f);
     for(int i=0;i<25;i++)
     {
         landV[i].draw(VP);
+    }
+    for(int i=0;i<32;i++)
+    {
+        ring[i].draw(VP);
     }
     for (int i = 0; i < 25; ++i)
     {
@@ -141,6 +153,8 @@ void tick_input(GLFWwindow *window) {
         plane.position.y-=0.5f;
     }
     if (forward){
+        // speedX += (plane.rot[2][0]);
+        // speedZ += (plane.rot[2][2]);
         plane.position.x += (plane.rot[2][0]);
         plane.position.z += (plane.rot[2][2]);
         plane.position.y += 0.8*(plane.rot[2][1]);
@@ -186,9 +200,21 @@ void initGL(GLFWwindow *window, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
     int k=0;
-    plane     = Aircraft(0, 30, 0, COLOR_GRAY, COLOR_BLACK);
+    plane     = Aircraft(0, 40, 0, COLOR_GRAY, COLOR_BLACK);
     sea       = Ocean(0,0,0,COLOR_BLUE);
     gas       = Fuel(3.25,3.5,0.0,COLOR_RED,COLOR_LGREEN);
+    for(int i=0;i<32;i++)
+    {
+        if(i%4==0)
+            ring[i]      = Ring(rand()%500, 50,rand()%500,COLOR_RED,COLOR_BLACK);
+        else if(i%4==1)
+            ring[i]      = Ring(-rand()%500, 50,rand()%500,COLOR_RED,COLOR_BLACK);
+        else if(i%4==2)
+            ring[i]      = Ring(rand()%500, 50,-rand()%500,COLOR_RED,COLOR_BLACK);
+        else if(i%4==3)
+            ring[i]      = Ring(-rand()%500, 50,-rand()%500,COLOR_RED,COLOR_BLACK);
+
+    }
     for (int i = 0; i < 25; ++i)
     {
         if(i%2==0)
@@ -255,7 +281,8 @@ int main(int argc, char **argv) {
         if (t60.processTick()) {
             // 60 fps
             // OpenGL Draw commands
-            
+            if(fuel>=0)
+                fuel-=0.01;
             tick_elements();
             draw();
             // Swap Frame Buffer in double buffering
