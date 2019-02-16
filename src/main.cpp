@@ -8,6 +8,8 @@
 #include "radiotower.h"
 #include "fuel.h"
 #include "ring.h"
+#include "speedometer.h"
+#include "altbar.h"
 
 
 using namespace std;
@@ -31,6 +33,8 @@ Volcano vol[25];
 Radiotower tow[25];
 Fuel gas;
 Ring ring[32];
+Speedometer meter;
+Altbar bar;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -39,6 +43,7 @@ float aX,aY,aZ;
 float speedX,speedY,speedZ;
 int score;
 float fuel=100.0;
+float fact;
 
 Timer t60(1.0 / 60);
 
@@ -102,6 +107,8 @@ void draw() {
     plane.draw(VP);
     sea.draw(VP);
     gas.draw(VPO,fuel/100.0f);
+    meter.draw(VPO);
+    bar.draw(VPO);
     for(int i=0;i<25;i++)
     {
         landV[i].draw(VP);
@@ -145,7 +152,9 @@ void tick_input(GLFWwindow *window) {
     int view1 = glfwGetKey(window, GLFW_KEY_B);
     int view2 = glfwGetKey(window, GLFW_KEY_N);
 
-
+    plane.position.x += fact*(plane.rot[2][0]);
+    plane.position.z += fact*(plane.rot[2][2]);
+    plane.position.y += fact*(plane.rot[2][1]);
     if (up){
         plane.position.y+=0.5f;
     }
@@ -153,11 +162,10 @@ void tick_input(GLFWwindow *window) {
         plane.position.y-=0.5f;
     }
     if (forward){
-        // speedX += (plane.rot[2][0]);
-        // speedZ += (plane.rot[2][2]);
-        plane.position.x += (plane.rot[2][0]);
-        plane.position.z += (plane.rot[2][2]);
-        plane.position.y += 0.8*(plane.rot[2][1]);
+        fact += 0.05;
+        // plane.position.x += (plane.rot[2][0]);
+        // plane.position.z += (plane.rot[2][2]);
+        // plane.position.y += (plane.rot[2][1]);
     }
     if (yawLeft){
         plane.rotation.y += 0.5;
@@ -192,6 +200,9 @@ void tick_input(GLFWwindow *window) {
 
 void tick_elements() {
     plane.tick();
+    if(fact>0)
+    fact-=0.03;
+    meter.tick(fact); 
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -203,6 +214,8 @@ void initGL(GLFWwindow *window, int width, int height) {
     plane     = Aircraft(0, 40, 0, COLOR_GRAY, COLOR_BLACK);
     sea       = Ocean(0,0,0,COLOR_BLUE);
     gas       = Fuel(3.25,3.5,0.0,COLOR_RED,COLOR_LGREEN);
+    meter     = Speedometer(3.2,-3.2,0.0,COLOR_RED,COLOR_BLACK);
+    bar     = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
     for(int i=0;i<32;i++)
     {
         if(i%4==0)
