@@ -3,11 +3,15 @@
 #include "aircraft.h"
 #include "ocean.h"
 #include "island.h"
+#include "score.h"
 #include "volcano.h"
+#include "radiotower.h"
+#include "fuel.h"
 
 using namespace std;
 
 GLMatrices Matrices;
+GLMatrices MatricesO;
 GLuint     programID;
 GLFWwindow *window;
 
@@ -17,14 +21,20 @@ GLFWwindow *window;
 
 Aircraft plane;
 Ocean sea;
-Island land[50];
-int a[50],b[50];
+Island landV[25];
+Island landC[25];
+int a[25],b[25],c[25],d[25];
+Score s[4]; 
 Volcano vol[25];
+Radiotower tow[25];
+Fuel gas;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
 int camFlag=0,xA,xB,xC,tA,tB,tC;
 float aX,aY,aZ;
+int score;
+int fuel;
 
 Timer t60(1.0 / 60);
 
@@ -64,29 +74,47 @@ void draw() {
     // Compute Camera matrix (view)
     // if(camFlag ==0)
         Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
+    MatricesO.view = glm::lookAt(glm::vec3(0,0,10),glm::vec3(0,0,0),glm::vec3(0,1,0));
     // Don't change unless you are sure!!
     // Matrices.view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)); // Fixed camera for 2D (ortho) in XY plane
 
     // Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
     // Don't change unless you are sure!!
     glm::mat4 VP = Matrices.projection * Matrices.view;
+    glm::mat4 VPO = MatricesO.projection * MatricesO.view;
+
 
     // Send our transformation to the currently bound shader, in the "MVP" uniform
     // For each model you render, since the MVP will be different (at least the M part)
     // Don't change unless you are sure!!
     glm::mat4 MVP;  // MVP = Projection * View * Model
+    int tens=1;
 
     // Scene render
     plane.draw(VP);
     sea.draw(VP);
-    for(int i=0;i<50;i++)
+    gas.draw(VPO);
+    for(int i=0;i<25;i++)
     {
-        land[i].draw(VP);
+        landV[i].draw(VP);
     }
     for (int i = 0; i < 25; ++i)
     {
         vol[i].draw(VP);
     }
+    for(int i=0;i<25;i++)
+    {
+        landC[i].draw(VP);
+    }
+    for(int i=0;i<25;i++)
+    {
+        tow[i].draw(VP);
+    }
+    for (int i = 0; i < 4; ++i)
+    {
+        s[i].draw(VPO,(score/tens)%10);
+        tens*=10;
+    } 
 }
 
 void tick_input(GLFWwindow *window) {
@@ -113,8 +141,8 @@ void tick_input(GLFWwindow *window) {
         plane.position.y-=0.5f;
     }
     if (forward){
-        plane.position.x += 0.2*(plane.rot[2][0]);
-        plane.position.z += 0.2*(plane.rot[2][2]);
+        plane.position.x += (plane.rot[2][0]);
+        plane.position.z += (plane.rot[2][2]);
         plane.position.y += 0.8*(plane.rot[2][1]);
     }
     if (yawLeft){
@@ -160,14 +188,33 @@ void initGL(GLFWwindow *window, int width, int height) {
     int k=0;
     plane     = Aircraft(0, 30, 0, COLOR_GRAY, COLOR_BLACK);
     sea       = Ocean(0,0,0,COLOR_BLUE);
-    for (int i = 0; i < 50; ++i)
+    gas       = Fuel(3.25,3.5,0.0,COLOR_RED,COLOR_LGREEN);
+    for (int i = 0; i < 25; ++i)
     {
-        a[i]=rand()%1000+i*50;
-        b[i]=rand()%1000+i*60;
-        land[i] = Island(a[i],0.1,b[i],COLOR_CLAY);
-        if(rand()%2==0 && k<25)
-            vol[k++] = Volcano(a[i],0.1,b[i],COLOR_BLACK);
+        if(i%2==0)
+        {
+            a[i]=rand()%1000+i*50;
+            b[i]=rand()%1000+i*60;
+            c[i]=rand()%1000+i*70;
+            d[i]=rand()%1000+i*80;
+        }
+        else
+        {
+            a[i]=(-1)*rand()%1000+i*50;
+            b[i]=(-1)*rand()%1000+i*60;
+            c[i]=(-1)*rand()%1000+i*70;
+            d[i]=(-1)*rand()%1000+i*80;
+        }
+        landV[i] = Island(a[i],0.1,b[i],COLOR_CLAY);
+        vol[i] = Volcano(a[i],0.1,b[i],COLOR_BROWN,COLOR_RED);
+        landC[i]= Island(c[i],0.2,d[i],COLOR_GREEN);
+        tow[i] = Radiotower(c[i],0.2,d[i],COLOR_BLACK,COLOR_GOLD);
     }
+    for (int i = 0; i < 4; ++i)
+    {
+        s[i]=Score(-4.0+0.5*(4-i),3.5,COLOR_BLACK);
+    }
+
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
@@ -235,4 +282,6 @@ void reset_screen() {
     float left   = screen_center_x - 4 / screen_zoom;
     float right  = screen_center_x + 4 / screen_zoom;
     Matrices.projection = glm::perspective(45.0f,1.0f,0.1f,1000.0f);
+    MatricesO.projection = glm::ortho(left,right,bottom,top,0.1f,1000.0f);
+
 }
