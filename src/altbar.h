@@ -9,7 +9,7 @@ public:
     Altbar() {}
     Altbar(float x, float y, float z, color_t color,color_t color1);
     glm::vec3 position;
-    void draw(glm::mat4 VP);
+    void draw(glm::mat4 VP,float alt);
     void set_position(float x, float y, float z);
     void tick();
 private:

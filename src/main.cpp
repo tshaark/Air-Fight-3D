@@ -10,6 +10,10 @@
 #include "ring.h"
 #include "speedometer.h"
 #include "altbar.h"
+#include "compass.h"
+#include "missiles.h"
+#include "bomb.h"
+
 
 
 using namespace std;
@@ -35,6 +39,9 @@ Fuel gas;
 Ring ring[32];
 Speedometer meter;
 Altbar bar;
+Compass comp;
+vector<Missiles> m;
+Bomb bomb;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -50,6 +57,7 @@ Timer t60(1.0 / 60);
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
 void draw() {
+    // cout<<plane.position.y<<endl;
     // clear the color and depth in the frame buffer
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -108,7 +116,8 @@ void draw() {
     sea.draw(VP);
     gas.draw(VPO,fuel/100.0f);
     meter.draw(VPO);
-    bar.draw(VPO);
+    comp.draw(VPO);
+    bar.draw(VPO,plane.position.y);
     for(int i=0;i<25;i++)
     {
         landV[i].draw(VP);
@@ -134,6 +143,11 @@ void draw() {
         s[i].draw(VPO,(score/tens)%10);
         tens*=10;
     } 
+    for(int i=0;i<m.size();i++)
+    {
+        m[i].draw(VP);
+    }
+    // bomb.draw(VP);
 }
 
 void tick_input(GLFWwindow *window) {
@@ -151,29 +165,35 @@ void tick_input(GLFWwindow *window) {
     int view = glfwGetKey(window, GLFW_KEY_V);
     int view1 = glfwGetKey(window, GLFW_KEY_B);
     int view2 = glfwGetKey(window, GLFW_KEY_N);
+    int shoot = glfwGetKey(window, GLFW_KEY_ENTER);
 
     plane.position.x += fact*(plane.rot[2][0]);
     plane.position.z += fact*(plane.rot[2][2]);
-    plane.position.y += fact*(plane.rot[2][1]);
+    if(plane.position.y<=262.5)
+        plane.position.y += fact*(plane.rot[2][1]);
     if (up){
-        plane.position.y+=0.5f;
+        if(plane.position.y<=262.5)
+            plane.position.y+=0.5f;
     }
     if (down){
         plane.position.y-=0.5f;
     }
     if (forward){
         fact += 0.05;
-        // plane.position.x += (plane.rot[2][0]);
-        // plane.position.z += (plane.rot[2][2]);
-        // plane.position.y += (plane.rot[2][1]);
     }
     if (yawLeft){
         plane.rotation.y += 0.5;
+        comp.rotation -= 0.5;
         aY+= 0.5;
     }
     if (yawRight){
         plane.rotation.y -= 0.5;
+        comp.rotation += 0.5;  
         aY-= 0.5;
+    }
+    if(shoot)
+    {
+        m.push_back(Missiles(plane.position.x,plane.position.y,plane.position.z,COLOR_GOLD,COLOR_RED,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
     }
     if (pitchDown){
         plane.rotation.x += 0.5;
@@ -203,6 +223,10 @@ void tick_elements() {
     if(fact>0)
     fact-=0.03;
     meter.tick(fact); 
+    for (int i = 0; i < m.size(); ++i)
+    {
+        m[i].tick();
+    }
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -215,7 +239,9 @@ void initGL(GLFWwindow *window, int width, int height) {
     sea       = Ocean(0,0,0,COLOR_BLUE);
     gas       = Fuel(3.25,3.5,0.0,COLOR_RED,COLOR_LGREEN);
     meter     = Speedometer(3.2,-3.2,0.0,COLOR_RED,COLOR_BLACK);
-    bar     = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
+    bar       = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
+    comp      = Compass(0.0,-3.2,0.0,COLOR_CRIMSON,COLOR_GAINSBORO);
+    bomb      = Bomb(0.0,40.0,10.0,COLOR_BLACK);
     for(int i=0;i<32;i++)
     {
         if(i%4==0)

@@ -9,4 +9,6 @@ const color_t COLOR_CLAY = { 115, 66, 34 };
 const color_t COLOR_BROWN = { 40, 26, 13 };
 const color_t COLOR_GOLD = { 212, 175, 55 };
 const color_t COLOR_RED = { 207, 16, 32 };
+const color_t COLOR_GAINSBORO = { 220, 220, 220 };
+const color_t COLOR_CRIMSON = { 220, 20, 60 };
 const color_t COLOR_BACKGROUND = { 208, 236, 253 };

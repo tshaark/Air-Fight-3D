@@ -32,9 +32,9 @@ Aircraft::Aircraft(float x, float y, float z,color_t color,color_t color1) {
         g_vertex_buffer_data0[9*i+8]=-0.5;
     } 
     this->object0 = create3DObject(GL_TRIANGLES, n*3, g_vertex_buffer_data0, color1, GL_FILL);
-    GLfloat g_vertex_buffer_data01[9*n+9] ;
-    
-   
+
+
+    GLfloat g_vertex_buffer_data01[9*n+9] ;    
     for (int i = 0; i < n; ++i)
     {
         float angle = 2*M_PI*i/n;
