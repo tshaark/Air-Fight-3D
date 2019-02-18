@@ -4,7 +4,7 @@
 Bomb::Bomb(float x, float y, float z,color_t color) {
     this->position = glm::vec3(x, y, z);
     GLfloat base_vertex_buffer_data[15001];
-    float radius=5.0;
+    float radius=1.0;
     int ptr = 0;
     glm::vec3 end1(0,0,0);
     glm::vec3 end2(0,0,0);

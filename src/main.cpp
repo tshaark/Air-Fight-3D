@@ -51,6 +51,7 @@ float speedX,speedY,speedZ;
 int score;
 float fuel=100.0;
 float fact;
+int lives=5;
 
 Timer t60(1.0 / 60);
 
@@ -226,6 +227,22 @@ void tick_elements() {
     for (int i = 0; i < m.size(); ++i)
     {
         m[i].tick();
+    }
+    float px=plane.position.x,py=plane.position.y,pz=plane.position.z;
+    for (int i = 0; i < m.size(); ++i)
+    {
+        if(sqrt((px-m[i].position.x)*(px-m[i].position.x)+(pz-m[i].position.z)*(pz-m[i].position.z))>= 100.0)
+        {
+            m.erase(m.begin()+i);
+            i--;
+        }
+    }
+    for(int i=0;i<25;i++)
+    {
+        if(sqrt((px-vol[i].position.x)*(px-vol[i].position.x)+(pz-vol[i].position.z)*(pz-vol[i].position.z))<= 10.0)
+        {
+            quit(window);
+        }
     }
 }
 

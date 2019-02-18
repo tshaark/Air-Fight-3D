@@ -101,9 +101,9 @@ void Missiles::set_position(float x, float y, float z) {
 }
 
 void Missiles::tick() {
-    this->position.x+=xSpeed;
-    this->position.y+=ySpeed;
-    this->position.z+=zSpeed;
+    this->position.x+=4*xSpeed;
+    this->position.y+=4*ySpeed;
+    this->position.z+=4*zSpeed;
 
     
 }
