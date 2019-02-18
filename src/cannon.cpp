@@ -1,10 +1,10 @@
-#include "bomb.h"
+#include "cannon.h"
 #include "main.h"
 
-Bomb::Bomb(float x, float y, float z,color_t color,glm::vec3 v) {
+Cannon::Cannon(float x, float y, float z,color_t color,glm::vec3 v) {
     this->position = glm::vec3(x, y, z);
     this->xSpeed=v.x;
-    this->ySpeed=0.0;
+    this->ySpeed=v.y;
     this->zSpeed=v.z;
     float R=1.0;
     int k=0;
@@ -56,7 +56,7 @@ Bomb::Bomb(float x, float y, float z,color_t color,glm::vec3 v) {
     }
 }
 
-void Bomb::draw(glm::mat4 VP) {
+void Cannon::draw(glm::mat4 VP) {
     Matrices.model = glm::mat4(1.0f);
     glm::mat4 translate = glm::translate (this->position);    // glTranslatef
     // No need as coords centered at 0, 0, 0 of cube arouund which we waant to rotate
@@ -70,15 +70,15 @@ void Bomb::draw(glm::mat4 VP) {
     // draw3DObject(this->object5);  
 }
 
-void Bomb::set_position(float x, float y, float z) {
+void Cannon::set_position(float x, float y, float z) {
     // this->position = glm::vec3(x, y, -4);
 }
 
-void Bomb::tick() {
-    this->ySpeed+=0.1633;
+void Cannon::tick() {
     this->position.x+=this->xSpeed;
-    this->position.y-=this->ySpeed;
+    this->position.y+=this->ySpeed;
     this->position.z+=this->zSpeed;
+    // std::cout<<this->position.x<<" "<<this->position.y<<" "<<this->position.z<<std::endl;
 
 }
 

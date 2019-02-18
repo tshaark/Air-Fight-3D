@@ -13,6 +13,7 @@ public:
     glm:: mat4 rot;
     void set_position(float x, float y, float z);
     void tick();
+    int flag;
     double speed;
 private:
     VAO *object1;

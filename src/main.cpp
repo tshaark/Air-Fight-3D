@@ -13,6 +13,7 @@
 #include "compass.h"
 #include "missiles.h"
 #include "bomb.h"
+#include "cannon.h"
 
 
 
@@ -33,6 +34,7 @@ Island landV[25];
 Island landC[25];
 int a[25],b[25],c[25],d[25];
 Score s[4]; 
+Score life;
 Volcano vol[25];
 Radiotower tow[25];
 Fuel gas;
@@ -42,6 +44,7 @@ Altbar bar;
 Compass comp;
 vector<Missiles> m;
 vector<Bomb> bomb;
+vector<Cannon> cannon;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -89,8 +92,8 @@ void draw() {
 
    
     // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
-        glm::vec3 up(plane.rot[1][0], plane.rot[1][1], plane.rot[1][2]);
-        glm::vec3 up1(0, 0, 1);
+    glm::vec3 up(plane.rot[1][0], plane.rot[1][1], plane.rot[1][2]);
+    glm::vec3 up1(0, 0, 1);
     if(camFlag == 0)
         Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
     if(camFlag == 1)
@@ -122,6 +125,7 @@ void draw() {
     meter.draw(VPO);
     comp.draw(VPO);
     bar.draw(VPO,plane.position.y);
+    life.draw(VPO,lives);
     for(int i=0;i<25;i++)
     {
         landV[i].draw(VP);
@@ -156,6 +160,10 @@ void draw() {
     for(int i=0;i<bomb.size();i++)
     {
         bomb[i].draw(VP);
+    }
+    for(int i=0;i<cannon.size();i++)
+    {
+        cannon[i].draw(VP);
     }
 }
 
@@ -205,8 +213,9 @@ void tick_input(GLFWwindow *window) {
     {
         m.push_back(Missiles(plane.position.x,plane.position.y,plane.position.z,COLOR_GOLD,COLOR_RED,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
     }
-    if(boom)
+    if(boom && plane.flag==0)
     {
+        plane.flag=1;
         bomb.push_back(Bomb(plane.position.x,plane.position.y-2.0,plane.position.z,COLOR_CRIMSON,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
     }
     if (pitchDown){
@@ -237,6 +246,10 @@ void tick_elements() {
     if(fact>0)
     fact-=0.03;
     meter.tick(fact); 
+    for(int i=0;i<25;i++)
+    {
+        tow[i].tick();
+    }
     for (int i = 0; i < m.size(); ++i)
     {
         m[i].tick();
@@ -245,7 +258,41 @@ void tick_elements() {
     {
         bomb[i].tick();
     }
+    for(int i=0;i<cannon.size();i++)
+    {
+        cannon[i].tick();
+    }
     float px=plane.position.x,py=plane.position.y,pz=plane.position.z;
+    for(int i=0;i<25;i++)
+    {
+        if(rFlag[i]>0)
+        {   
+            float tx=tow[i].position.x,ty=tow[i].position.y,tz=tow[i].position.z;
+            if(sqrt((px-tx)*(px-tx)+(pz-tz)*(pz-tz))<=100.0 && py-ty<=70.0  && tow[i].flag==0)
+            {
+                tow[i].flag=1;
+                cannon.push_back(Cannon(tx,ty+30.0,tz,COLOR_BLACK,glm::normalize(glm::vec3(px-tx,py-ty-30.0,pz-tz))));
+            }
+        }
+    }
+    for(int i=0;i<cannon.size();i++)
+    {
+        float cx=cannon[i].position.x,cy=cannon[i].position.y,cz=cannon[i].position.z;
+        if(sqrt((cx-px)*(cx-px)+(cy-py)*(cy-py)+(cz-pz)*(cz-pz))<=1.0)
+        {
+            lives--;
+            if(lives<=0)
+            {
+                quit(window);
+            }
+            cout<<lives<<endl;
+        }
+        if(sqrt((cx-px)*(cx-px)+(cy-py)*(cy-py)+(cz-pz)*(cz-pz))>=70.0)
+        {
+            cannon.erase(cannon.begin()-i);
+            i--;
+        }
+    }
     if(py<=0.0)
         quit(window);
     for (int i = 0; i < m.size(); ++i)
@@ -277,8 +324,8 @@ void tick_elements() {
         {
             if(rFlag[j]>0)
             {
-                int mx=m[i].position.x,my=m[i].position.y,mz=m[i].position.z;
-                int tx=tow[j].position.x,ty=tow[j].position.y,tz=tow[j].position.z;
+                float mx=m[i].position.x,my=m[i].position.y,mz=m[i].position.z;
+                float tx=tow[j].position.x,ty=tow[j].position.y,tz=tow[j].position.z;
                 if(sqrt((mx-tx)*(mx-tx)+(mz-tz)*(mz-tz))<= 30.0 && my-ty<=31.0 && my-ty>=0.0)
                 {
                     rFlag[j]--;
@@ -295,8 +342,8 @@ void tick_elements() {
         {
             if(rFlag[j]>0)
             {
-                int mx=bomb[i].position.x,my=bomb[i].position.y,mz=bomb[i].position.z;
-                int tx=tow[j].position.x,ty=tow[j].position.y,tz=tow[j].position.z;
+                float mx=bomb[i].position.x,my=bomb[i].position.y,mz=bomb[i].position.z;
+                float tx=tow[j].position.x,ty=tow[j].position.y,tz=tow[j].position.z;
                 if(bomb[i].position.y<=1.0 && sqrt((mx-tx)*(mx-tx)+(mz-tz)*(mz-tz))<= 50.0)
                 {
                      rFlag[j]=0;
@@ -329,6 +376,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     meter     = Speedometer(3.2,-3.2,0.0,COLOR_RED,COLOR_BLACK);
     bar       = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
     comp      = Compass(0.0,-3.2,0.0,COLOR_CRIMSON,COLOR_GAINSBORO);
+    life      = Score(0.0,3.5,COLOR_CRIMSON);
     for(int i=0;i<32;i++)
     {
         ringFlag[i]=1;

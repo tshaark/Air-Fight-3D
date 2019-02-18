@@ -159,6 +159,13 @@ void Radiotower::set_position(float x, float y, float z) {
 }
 
 void Radiotower::tick() {
-// lite abhi
+    if(this->flag>0)
+    {
+        this->flag++;
+    }
+    if(this->flag>=60)
+    {
+        this->flag=0;
+    }
 }
 

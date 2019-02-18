@@ -219,6 +219,13 @@ void Aircraft::set_position(float x, float y, float z) {
 }
 
 void Aircraft::tick() {
-    
+    if(this->flag>0)
+    {
+        this->flag++;
+    }
+    if(this->flag>=100)
+    {
+        this->flag=0;
+    }    
 }
 
