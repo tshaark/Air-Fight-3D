@@ -7,14 +7,15 @@
 class Bomb {
 public:
     Bomb() {}
-    Bomb(float x, float y, float z, color_t color);
+    Bomb(float x, float y, float z, color_t color,glm::vec3 v);
     glm::vec3 position;
     void draw(glm::mat4 VP);
+    float xSpeed,ySpeed,zSpeed;
     void set_position(float x, float y, float z);
     void tick();
     double speed;
 private:
-    VAO *object;
+    VAO *object[360];
     // VAO *object4;
     // VAO *object5;
 };

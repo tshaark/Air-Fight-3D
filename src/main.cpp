@@ -41,7 +41,7 @@ Speedometer meter;
 Altbar bar;
 Compass comp;
 vector<Missiles> m;
-Bomb bomb;
+vector<Bomb> bomb;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -52,6 +52,9 @@ int score;
 float fuel=100.0;
 float fact;
 int lives=5;
+int rFlag[25];
+int ringFlag[32];
+
 
 Timer t60(1.0 / 60);
 
@@ -125,7 +128,8 @@ void draw() {
     }
     for(int i=0;i<32;i++)
     {
-        ring[i].draw(VP);
+        if(ringFlag[i])
+            ring[i].draw(VP);
     }
     for (int i = 0; i < 25; ++i)
     {
@@ -137,7 +141,8 @@ void draw() {
     }
     for(int i=0;i<25;i++)
     {
-        tow[i].draw(VP);
+        if(rFlag[i]>0)
+            tow[i].draw(VP);
     }
     for (int i = 0; i < 4; ++i)
     {
@@ -148,7 +153,10 @@ void draw() {
     {
         m[i].draw(VP);
     }
-    // bomb.draw(VP);
+    for(int i=0;i<bomb.size();i++)
+    {
+        bomb[i].draw(VP);
+    }
 }
 
 void tick_input(GLFWwindow *window) {
@@ -167,6 +175,7 @@ void tick_input(GLFWwindow *window) {
     int view1 = glfwGetKey(window, GLFW_KEY_B);
     int view2 = glfwGetKey(window, GLFW_KEY_N);
     int shoot = glfwGetKey(window, GLFW_KEY_ENTER);
+    int boom  = glfwGetKey(window, GLFW_KEY_X);
 
     plane.position.x += fact*(plane.rot[2][0]);
     plane.position.z += fact*(plane.rot[2][2]);
@@ -195,6 +204,10 @@ void tick_input(GLFWwindow *window) {
     if(shoot)
     {
         m.push_back(Missiles(plane.position.x,plane.position.y,plane.position.z,COLOR_GOLD,COLOR_RED,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
+    }
+    if(boom)
+    {
+        bomb.push_back(Bomb(plane.position.x,plane.position.y-2.0,plane.position.z,COLOR_CRIMSON,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
     }
     if (pitchDown){
         plane.rotation.x += 0.5;
@@ -228,20 +241,78 @@ void tick_elements() {
     {
         m[i].tick();
     }
+    for(int i=0;i<bomb.size();i++)
+    {
+        bomb[i].tick();
+    }
     float px=plane.position.x,py=plane.position.y,pz=plane.position.z;
+    if(py<=0.0)
+        quit(window);
     for (int i = 0; i < m.size(); ++i)
     {
-        if(sqrt((px-m[i].position.x)*(px-m[i].position.x)+(pz-m[i].position.z)*(pz-m[i].position.z))>= 100.0)
+        if(sqrt((px-m[i].position.x)*(px-m[i].position.x)+(pz-m[i].position.z)*(pz-m[i].position.z))>= 300.0)
         {
             m.erase(m.begin()+i);
             i--;
         }
     }
+    for(int i=0;i<bomb.size();i++)
+    {
+        if(bomb[i].position.y<=0)
+        {
+            bomb.erase(bomb.begin()+i);
+            i--;
+        }
+    }
     for(int i=0;i<25;i++)
     {
-        if(sqrt((px-vol[i].position.x)*(px-vol[i].position.x)+(pz-vol[i].position.z)*(pz-vol[i].position.z))<= 10.0)
+        if(sqrt((px-vol[i].position.x)*(px-vol[i].position.x)+(pz-vol[i].position.z)*(pz-vol[i].position.z))<= 10.0 && (py-vol[i].position.y<=60.0))
         {
             quit(window);
+        }
+    }
+    for(int i=0;i< m.size();i++)
+    {
+        for(int j=0;j<25;j++)
+        {
+            if(rFlag[j]>0)
+            {
+                int mx=m[i].position.x,my=m[i].position.y,mz=m[i].position.z;
+                int tx=tow[j].position.x,ty=tow[j].position.y,tz=tow[j].position.z;
+                if(sqrt((mx-tx)*(mx-tx)+(mz-tz)*(mz-tz))<= 30.0 && my-ty<=31.0 && my-ty>=0.0)
+                {
+                    rFlag[j]--;
+                    m.erase(m.begin()+i);
+                    i--;
+                    score+=2;
+                }
+            }
+        }
+    }
+    for(int i=0;i< bomb.size();i++)
+    {
+        for(int j=0;j<25;j++)
+        {
+            if(rFlag[j]>0)
+            {
+                int mx=bomb[i].position.x,my=bomb[i].position.y,mz=bomb[i].position.z;
+                int tx=tow[j].position.x,ty=tow[j].position.y,tz=tow[j].position.z;
+                if(bomb[i].position.y<=1.0 && sqrt((mx-tx)*(mx-tx)+(mz-tz)*(mz-tz))<= 50.0)
+                {
+                     rFlag[j]=0;
+                    bomb.erase(bomb.begin()+i);
+                    i--;
+                    score+=50;
+                }
+            }
+        }
+    }
+    for(int i=0;i<32;i++)
+    {
+        if(sqrt((px-ring[i].position.x)*(px-ring[i].position.x)+(py-ring[i].position.y)*(py-ring[i].position.y)+(pz-ring[i].position.z)*(pz-ring[i].position.z))<= 2.0)
+        {
+            score+=20;
+            ringFlag[i]=0;
         }
     }
 }
@@ -258,9 +329,10 @@ void initGL(GLFWwindow *window, int width, int height) {
     meter     = Speedometer(3.2,-3.2,0.0,COLOR_RED,COLOR_BLACK);
     bar       = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
     comp      = Compass(0.0,-3.2,0.0,COLOR_CRIMSON,COLOR_GAINSBORO);
-    bomb      = Bomb(0.0,40.0,10.0,COLOR_BLACK);
     for(int i=0;i<32;i++)
     {
+        ringFlag[i]=1;
+
         if(i%4==0)
             ring[i]      = Ring(rand()%500, 50,rand()%500,COLOR_RED,COLOR_BLACK);
         else if(i%4==1)
@@ -291,6 +363,7 @@ void initGL(GLFWwindow *window, int width, int height) {
         vol[i] = Volcano(a[i],0.1,b[i],COLOR_BROWN,COLOR_RED);
         landC[i]= Island(c[i],0.2,d[i],COLOR_GREEN);
         tow[i] = Radiotower(c[i],0.2,d[i],COLOR_BLACK,COLOR_GOLD);
+        rFlag[i]=5;
     }
     for (int i = 0; i < 4; ++i)
     {
@@ -347,7 +420,7 @@ int main(int argc, char **argv) {
             tick_input(window);
         }
 
-        // Poll for Keyboard and mouse events
+        // Poll for Keyboard  and mouse events
         glfwPollEvents();
     }
 
