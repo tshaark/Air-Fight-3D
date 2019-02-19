@@ -15,6 +15,7 @@
 #include "bomb.h"
 #include "cannon.h"
 #include "petrol.h"
+#include "parachute.h"
 
 
 
@@ -47,6 +48,7 @@ vector<Missiles> m;
 vector<Bomb> bomb;
 vector<Cannon> cannon;
 Petrol p[12];
+Parachute pc;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -133,6 +135,7 @@ void draw() {
     comp.draw(VPO);
     bar.draw(VPO,plane.position.y);
     life.draw(VPO,lives);
+    pc.draw(VP);
     for(int i=0;i<12;i++)
     {
         if(!pFlag[i])
@@ -262,6 +265,7 @@ void tick_elements() {
     if(fact>0)
     fact-=0.03;
     meter.tick(fact); 
+    pc.tick();
     for(int i=0;i<25;i++)
     {
         tow[i].tick();
@@ -403,6 +407,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     bar       = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
     comp      = Compass(0.0,-3.2,0.0,COLOR_CRIMSON,COLOR_GAINSBORO);
     life      = Score(0.0,3.5,COLOR_BLACK);
+    pc        = Parachute(0.0,60.0,5.0,COLOR_LGREEN,COLOR_BLACK,COLOR_RED);
     for(int i=0;i<12;i++)
     {
         if(i%2==0)
