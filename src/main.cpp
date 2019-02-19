@@ -16,6 +16,7 @@
 #include "cannon.h"
 #include "petrol.h"
 #include "parachute.h"
+#include "gps.h"
 
 
 
@@ -49,6 +50,7 @@ vector<Bomb> bomb;
 vector<Cannon> cannon;
 Petrol p[12];
 Parachute pc[20];
+Gps gps;
 int pcFlag[20];
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
@@ -133,6 +135,7 @@ void draw() {
     comp.draw(VPO);
     bar.draw(VPO,plane.position.y);
     life.draw(VPO,lives);
+    gps.draw(VP);
     for(int i=0;i<20;i++)
     {
         if(!pcFlag[i])
@@ -313,6 +316,15 @@ void tick_elements() {
              pc[i].tick();
         }
     }
+    gps.position = plane.position -glm::vec3(0,2.0,0);
+    for(int i=0;i<25;i++)
+    {
+        if(rFlag[i]>0)
+        {
+            gps.direction = tow[i].position-plane.position;
+
+        }
+    }
     for(int i=0;i<25;i++)
     {
         tow[i].tick();
@@ -471,6 +483,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     bar       = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
     comp      = Compass(0.0,-3.2,0.0,COLOR_CRIMSON,COLOR_GAINSBORO);
     life      = Score(0.0,3.5,COLOR_BLACK);
+    gps       = Gps(4.5,40,0.0,COLOR_GAINSBORO,COLOR_BLACK);
     for(int i=0;i<20;i++)
         pc[i]        = Parachute(rand()%1000,60.0+rand()%500,rand()%1000,COLOR_LGREEN,COLOR_BLACK,COLOR_RED);
     for(int i=0;i<12;i++)
