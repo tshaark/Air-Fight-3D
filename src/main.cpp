@@ -14,6 +14,7 @@
 #include "missiles.h"
 #include "bomb.h"
 #include "cannon.h"
+#include "petrol.h"
 
 
 
@@ -45,6 +46,7 @@ Compass comp;
 vector<Missiles> m;
 vector<Bomb> bomb;
 vector<Cannon> cannon;
+Petrol p[12];
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -57,6 +59,7 @@ float fact;
 int lives=5;
 int rFlag[25];
 int ringFlag[32];
+int pFlag[12];
 
 
 Timer t60(1.0 / 60);
@@ -84,6 +87,8 @@ void draw() {
         eye = plane.position +glm::vec3(0,10,0);
     else if(camFlag==2)
         eye = plane.position -glm::vec3(0,0,-4);
+    else if(camFlag==3)
+        eye = plane.position +glm::vec3(10,4,0);
 
     glm::vec3 target = plane.position;
     glm::vec3 target1 = plane.position + glm::vec3(0,0,6);
@@ -100,6 +105,8 @@ void draw() {
         Matrices.view = glm::lookAt( eye, target, up1 ); // Rotating Camera for 3D
     if(camFlag == 2)
         Matrices.view = glm::lookAt( eye, target1, up ); // Rotating Camera for 3D
+    if(camFlag == 3)
+        Matrices.view = glm::lookAt( eye, target, up );
     // Compute Camera matrix (view)
     // if(camFlag ==0)
     MatricesO.view = glm::lookAt(glm::vec3(0,0,10),glm::vec3(0,0,0),glm::vec3(0,1,0));
@@ -126,6 +133,11 @@ void draw() {
     comp.draw(VPO);
     bar.draw(VPO,plane.position.y);
     life.draw(VPO,lives);
+    for(int i=0;i<12;i++)
+    {
+        if(!pFlag[i])
+            p[i].draw(VP);
+    }
     for(int i=0;i<25;i++)
     {
         landV[i].draw(VP);
@@ -182,6 +194,7 @@ void tick_input(GLFWwindow *window) {
     int view = glfwGetKey(window, GLFW_KEY_V);
     int view1 = glfwGetKey(window, GLFW_KEY_B);
     int view2 = glfwGetKey(window, GLFW_KEY_N);
+    int view3 = glfwGetKey(window, GLFW_KEY_M);
     int shoot = glfwGetKey(window, GLFW_KEY_ENTER);
     int boom  = glfwGetKey(window, GLFW_KEY_X);
 
@@ -237,6 +250,9 @@ void tick_input(GLFWwindow *window) {
         camFlag=2;
     }
     if (view2){
+        camFlag=3;
+    }
+    if (view3){
         camFlag=0;
     }
 }
@@ -275,6 +291,17 @@ void tick_elements() {
             }
         }
     }
+    for(int i=0;i<12;i++)
+    {
+        float gx=p[i].position.x,gy=p[i].position.y,gz=p[i].position.z;
+        if(sqrt((gx-px)*(gx-px)+(gy-py)*(gy-py)+(gz-pz)*(gz-pz))<=2.0)
+        {   
+            pFlag[i]=1;
+            fuel=100.0;
+            break;
+        }
+
+    }
     for(int i=0;i<cannon.size();i++)
     {
         float cx=cannon[i].position.x,cy=cannon[i].position.y,cz=cannon[i].position.z;
@@ -285,7 +312,6 @@ void tick_elements() {
             {
                 quit(window);
             }
-            cout<<lives<<endl;
         }
         if(sqrt((cx-px)*(cx-px)+(cy-py)*(cy-py)+(cz-pz)*(cz-pz))>=70.0)
         {
@@ -376,7 +402,14 @@ void initGL(GLFWwindow *window, int width, int height) {
     meter     = Speedometer(3.2,-3.2,0.0,COLOR_RED,COLOR_BLACK);
     bar       = Altbar(-3.2,-3.2,0.0,COLOR_GOLD,COLOR_RED);
     comp      = Compass(0.0,-3.2,0.0,COLOR_CRIMSON,COLOR_GAINSBORO);
-    life      = Score(0.0,3.5,COLOR_CRIMSON);
+    life      = Score(0.0,3.5,COLOR_BLACK);
+    for(int i=0;i<12;i++)
+    {
+        if(i%2==0)
+            p[i] = Petrol(rand()%1000,40.0+(rand()%80),rand()%1000,COLOR_RED);
+        else
+            p[i] = Petrol(rand()%1000,40.0+(rand()%80),-rand()%1000,COLOR_RED);
+    }
     for(int i=0;i<32;i++)
     {
         ringFlag[i]=1;
