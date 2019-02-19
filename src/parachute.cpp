@@ -186,8 +186,8 @@ void Parachute::set_position(float x, float y, float z) {
 }
 
 void Parachute::tick() {
-    // this->ySpeed+=0.1633;
-    // this->position.y-=0.2*this->ySpeed;
+    this->ySpeed+=0.1*0.1633;
+    this->position.y-=0.001*this->ySpeed;
 
 }
 
