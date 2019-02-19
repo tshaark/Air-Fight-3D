@@ -63,7 +63,10 @@ int lives=5;
 int rFlag[25];
 int ringFlag[32];
 int pFlag[12];
-
+double x,y,z;
+float loopIter;
+bool looploop = false;
+bool rollroll = false;
 
 Timer t60(1.0 / 60);
 
@@ -83,18 +86,22 @@ void draw() {
     glm::vec3 eye = plane.position ;
     // cout<<plane.rotation.y<<endl;
     // glm::vec3 eye (xA,xB,xC);
+    x = (x - 300.0)/30.0;
+    y = (y - 300.0)/30.0;
+    z = sqrt(200.0-(x*x)-(y*y));
     if(camFlag==0)
         eye = plane.position -glm::vec3(10*sin(aY*M_PI/180.0f),-4,10*cos(aY*M_PI/180.0f));
-        // eye = plane.position +glm::vec3(-10*plane.rot[2][0]-10*plane.rot[1][0],5*plane.rot[2][1]+5*plane.rot[1][1],-10*plane.rot[2][2]-10*plane.rot[1][2]);
     else if(camFlag==1)
         eye = plane.position +glm::vec3(0,10,0);
     else if(camFlag==2)
         eye = plane.position -glm::vec3(0,0,-4);
     else if(camFlag==3)
         eye = plane.position +glm::vec3(10,4,0);
+    else if(camFlag==4)
+        eye = plane.position +glm::vec3(x,y,-z);
 
     glm::vec3 target = plane.position;
-    glm::vec3 target1 = plane.position + glm::vec3(0,0,6);
+    glm::vec3 target1 = plane.position + glm::vec3(plane.rot[2][0],plane.rot[2][1],6+plane.rot[2][2]);
 
     // cout<<eye.x<<" "<<eye.y<<" "<<eye.z<<endl;
 
@@ -110,25 +117,15 @@ void draw() {
         Matrices.view = glm::lookAt( eye, target1, up ); // Rotating Camera for 3D
     if(camFlag == 3)
         Matrices.view = glm::lookAt( eye, target, up );
-    // Compute Camera matrix (view)
-    // if(camFlag ==0)
-    MatricesO.view = glm::lookAt(glm::vec3(0,0,10),glm::vec3(0,0,0),glm::vec3(0,1,0));
-    // Don't change unless you are sure!!
-    // Matrices.view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)); // Fixed camera for 2D (ortho) in XY plane
+    if(camFlag == 4)
+        Matrices.view = glm::lookAt(eye , target, up1);
 
-    // Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
-    // Don't change unless you are sure!!
+    MatricesO.view = glm::lookAt(glm::vec3(0,0,10),glm::vec3(0,0,0),glm::vec3(0,1,0));
     glm::mat4 VP = Matrices.projection * Matrices.view;
     glm::mat4 VPO = MatricesO.projection * MatricesO.view;
-
-
-    // Send our transformation to the currently bound shader, in the "MVP" uniform
-    // For each model you render, since the MVP will be different (at least the M part)
-    // Don't change unless you are sure!!
     glm::mat4 MVP;  // MVP = Projection * View * Model
     int tens=1;
 
-    // Scene render
     plane.draw(VP);
     sea.draw(VP);
     gas.draw(VPO,fuel/100.0f);
@@ -205,63 +202,100 @@ void tick_input(GLFWwindow *window) {
     int view3 = glfwGetKey(window, GLFW_KEY_M);
     int shoot = glfwGetKey(window, GLFW_KEY_ENTER);
     int boom  = glfwGetKey(window, GLFW_KEY_X);
+    int heli  = glfwGetKey(window, GLFW_KEY_H);
+    int loop  = glfwGetKey(window, GLFW_KEY_L);
+    int roll = glfwGetKey(window,GLFW_KEY_R);
 
     plane.position.x += fact*(plane.rot[2][0]);
     plane.position.z += fact*(plane.rot[2][2]);
-    if(plane.position.y<=262.5)
-        plane.position.y += fact*(plane.rot[2][1]);
-    if (up){
+    if(looploop)
+    {
+        loopIter+=1.0f;
+        fact = 2.0f;
+        plane.rotation.x -= 1.0f;
+        if(loopIter>=360.0f)
+        {
+            looploop=0;
+            loopIter = 0;
+            fact=0.0f;
+        }
+    }
+    if(rollroll)
+    {
+        loopIter+=1.0f;
+        fact = 2.0f;
+        plane.rotation.z += 1.0f;
+        if(loopIter>=360.0f)
+        {
+            rollroll=0;
+            loopIter = 0;
+            fact=0.0f;
+        }
+    }
+    if (!looploop && !rollroll){
+        if(loop)
+            looploop = true;
+        if(roll)
+            rollroll = true;
         if(plane.position.y<=262.5)
-            plane.position.y+=0.5f;
-    }
-    if (down){
-        plane.position.y-=0.5f;
-    }
-    if (forward){
-        fact += 0.05;
-    }
-    if (yawLeft){
-        plane.rotation.y += 0.5;
-        comp.rotation -= 0.5;
-        aY+= 0.5;
-    }
-    if (yawRight){
-        plane.rotation.y -= 0.5;
-        comp.rotation += 0.5;  
-        aY-= 0.5;
-    }
-    if(shoot)
-    {
-        m.push_back(Missiles(plane.position.x,plane.position.y,plane.position.z,COLOR_GOLD,COLOR_RED,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
-    }
-    if(boom && plane.flag==0)
-    {
-        plane.flag=1;
-        bomb.push_back(Bomb(plane.position.x,plane.position.y-2.0,plane.position.z,COLOR_CRIMSON,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
-    }
-    if (pitchDown){
-        plane.rotation.x += 0.5;
-    }
-    if (pitchUp){
-        plane.rotation.x -= 0.5;
-    }
-    if (rotLeft){
-        plane.rotation.z -= 0.5;
-    }
-    if (rotRight){
-        plane.rotation.z += 0.5;
-    }
-    if (view){
-        camFlag=1;
-    }
-    if (view1){
-        camFlag=2;
-    }
-    if (view2){
-        camFlag=3;
-    }
-    if (view3){
-        camFlag=0;
+            plane.position.y += fact*(plane.rot[2][1]);
+        if (up){
+            if(plane.position.y<=262.5)
+                plane.position.y+=0.5f;
+        }
+        if (down){
+            plane.position.y-=0.5f;
+        }
+        if (forward){
+            fact += 0.05;
+        }
+        if (yawLeft){
+            plane.rotation.y += 0.5;
+            comp.rotation -= 0.5;
+            aY+= 0.5;
+        }
+        if (yawRight){
+            plane.rotation.y -= 0.5;
+            comp.rotation += 0.5;  
+            aY-= 0.5;
+        }
+        glfwGetCursorPos(window, &x, &y);
+        if(shoot)
+        {
+            m.push_back(Missiles(plane.position.x,plane.position.y,plane.position.z,COLOR_GOLD,COLOR_RED,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
+        }
+        if(boom && plane.flag==0)
+        {
+            plane.flag=1;
+            bomb.push_back(Bomb(plane.position.x,plane.position.y-2.0,plane.position.z,COLOR_CRIMSON,glm::vec3(plane.rot[2][0],plane.rot[2][1],plane.rot[2][2])));
+        }
+        if (pitchDown){
+            plane.rotation.x += 0.5;
+        }
+        if (pitchUp){
+            plane.rotation.x -= 0.5;
+        }
+        if (rotLeft){
+            plane.rotation.z -= 0.5;
+        }
+        if (rotRight){
+            plane.rotation.z += 0.5;
+        }
+        if (view){
+            camFlag=1;
+        }
+        if (view1){
+            camFlag=2;
+        }
+        if (view2){
+            camFlag=3;
+        }
+        if (view3){
+            camFlag=0;
+        }
+        if (heli){
+            camFlag=4;
+        }
     }
 }
 
@@ -426,8 +460,6 @@ void tick_elements() {
     }
 }
 
-/* Initialize the OpenGL rendering properties */
-/* Add all the models to be created here */
 void initGL(GLFWwindow *window, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
